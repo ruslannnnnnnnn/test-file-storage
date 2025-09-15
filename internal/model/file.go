@@ -8,8 +8,8 @@ import (
 
 type File struct {
 	gorm.Model
-	Id        string
-	Name      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Id        string    `gorm:"primaryKey;type:uuid;"`
+	Name      string    `gorm:"type:varchar(255);not null"`
+	CreatedAt time.Time `gorm:"type:timestamp;default:now()"`
+	UpdatedAt time.Time `gorm:"type:timestamp;default:now()"`
 }

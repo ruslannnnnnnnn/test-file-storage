@@ -1,5 +1,7 @@
 package common
 
+import "github.com/ruslannnnnnnnn/test-file-storage/internal/model"
+
 type DatabaseConfig struct {
 	Host   string
 	User   string
@@ -14,4 +16,6 @@ type DownloadRequest struct{}
 type DownloadResponse struct{}
 
 type ListFilesRequest struct{}
-type ListFilesResponse struct{}
+type ListFilesResponse struct {
+	Files []model.File
+}
