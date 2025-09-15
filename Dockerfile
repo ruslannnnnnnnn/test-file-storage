@@ -34,6 +34,8 @@ USER appuser
 
 COPY --from=build /bin/server /bin/
 
+COPY .env /app/
+
 EXPOSE 8080
 
 ENTRYPOINT [ "/bin/server" ]

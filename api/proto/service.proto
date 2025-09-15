@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package service.v1;
+
+option go_package = "service/v1;servicev1";
+
+service FileService {
+  rpc Upload (UploadRequest) returns (UploadResponse);
+  rpc Download (DownloadRequest) returns (DownloadResponse);
+  rpc ListFiles (ListFilesRequest) returns (ListFilesResponse);
+}
+
+message UploadRequest {
+  string filename = 1;
+  bytes data = 2;
+}
+
+message UploadResponse {
+  string id = 1;
+}
+
+message DownloadRequest {
+  string id = 1;
+}
+
+message DownloadResponse {
+  string filename = 1;
+  bytes data = 2;
+}
+
+message ListFilesRequest {}
+
+message FileInfo {
+  string filename = 1;
+  string created_at = 2;
+  string updated_at = 3;
+}
+
+message ListFilesResponse {
+  repeated FileInfo files = 1;
+}
