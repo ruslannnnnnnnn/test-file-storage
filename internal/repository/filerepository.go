@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"github.com/google/uuid"
 	"github.com/ruslannnnnnnnn/test-file-storage/internal/model"
 	"gorm.io/gorm"
 )
@@ -8,6 +9,7 @@ import (
 type IFileRepository interface {
 	AutoMigrate() error
 	ListFiles() ([]model.File, error)
+	Create(name string) (id string, err error)
 }
 
 type FileRepository struct {
@@ -36,4 +38,22 @@ func (f FileRepository) ListFiles() ([]model.File, error) {
 	}
 
 	return files, nil
+}
+
+func (f FileRepository) Create(name string) (id string, err error) {
+
+	fileId := uuid.New().String()
+
+	file := model.File{
+		Id:   fileId,
+		Name: name,
+	}
+
+	result := f.dbConnection.Create(&file)
+
+	if result.Error != nil {
+		return "", result.Error
+	}
+
+	return fileId, nil
 }

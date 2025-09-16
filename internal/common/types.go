@@ -9,13 +9,17 @@ type DatabaseConfig struct {
 	Port   int
 }
 
-type UploadRequest struct{}
-type UploadResponse struct{}
+type UploadRequest struct {
+	FileName    string
+	FileContent []byte
+}
+type UploadResponse struct {
+	FileId string
+}
 
 type DownloadRequest struct{}
 type DownloadResponse struct{}
 
-type ListFilesRequest struct{}
 type ListFilesResponse struct {
 	Files []model.File
 }

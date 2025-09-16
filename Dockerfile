@@ -21,6 +21,8 @@ RUN --mount=type=cache,target=/var/cache/apk \
         && \
         update-ca-certificates
 
+RUN mkdir -p /app/files/
+
 ARG UID=10001
 RUN adduser \
     --disabled-password \
@@ -30,6 +32,9 @@ RUN adduser \
     --no-create-home \
     --uid "${UID}" \
     appuser
+
+RUN chown -R appuser /app/files
+
 USER appuser
 
 COPY --from=build /bin/server /bin/
