@@ -1,7 +1,6 @@
 package limiter
 
 import (
-	"fmt"
 	"sync"
 	"time"
 )
@@ -46,9 +45,6 @@ func (l *Limiter) Inc(clientID, method string) bool {
 		e = &entry{counts: make(map[string]int)}
 		l.clients[clientID] = e
 	}
-
-	fmt.Printf("client=%s method=%s active=%d limit=%d\n",
-		clientID, method, e.counts[method], limit)
 
 	if e.counts[method] >= limit {
 		return false
