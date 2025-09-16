@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/google/uuid"
 	"github.com/ruslannnnnnnnn/test-file-storage/internal/common"
 	"github.com/ruslannnnnnnnn/test-file-storage/internal/filesystem"
 	"github.com/ruslannnnnnnnn/test-file-storage/internal/repository"
@@ -27,7 +28,7 @@ func (f FileService) Upload(request common.UploadRequest) (fileId string, err er
 		return "", err
 	}
 
-	// у сохранённого файла uuid в названии
+	// у сохранённого файла uuid в названии чтобы можно было иметь несколько файлов с одинаковым названием
 	err = filesystem.Write(fileId, request.FileContent)
 	if err != nil {
 		return "", err
@@ -37,8 +38,23 @@ func (f FileService) Upload(request common.UploadRequest) (fileId string, err er
 }
 
 func (f FileService) Download(request common.DownloadRequest) (common.DownloadResponse, error) {
-	//TODO implement me
-	panic("implement me")
+
+	err := uuid.Validate(request.FileId)
+	if err != nil {
+		return common.DownloadResponse{}, InvalidUUidError{}
+	}
+
+	file, err := f.fileRepository.GetById(request.FileId)
+	if err != nil {
+		return common.DownloadResponse{}, FileNotFoundError{}
+	}
+
+	fileContent, err := filesystem.Read(request.FileId)
+	if err != nil {
+		return common.DownloadResponse{}, err
+	}
+
+	return common.DownloadResponse{FileName: file.Name, FileContent: fileContent}, nil
 }
 
 func (f FileService) ListFiles() (common.ListFilesResponse, error) {

@@ -13,12 +13,14 @@ type UploadRequest struct {
 	FileName    string
 	FileContent []byte
 }
-type UploadResponse struct {
+
+type DownloadRequest struct {
 	FileId string
 }
-
-type DownloadRequest struct{}
-type DownloadResponse struct{}
+type DownloadResponse struct {
+	FileName    string
+	FileContent []byte
+}
 
 type ListFilesResponse struct {
 	Files []model.File

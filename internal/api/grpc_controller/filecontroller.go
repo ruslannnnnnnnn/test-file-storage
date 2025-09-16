@@ -5,10 +5,9 @@ import (
 	"time"
 
 	pb "github.com/ruslannnnnnnnn/test-file-storage/api/gen/go/service/v1"
+	"github.com/ruslannnnnnnnn/test-file-storage/internal/api/grpc_controller/helper"
 	"github.com/ruslannnnnnnnn/test-file-storage/internal/common"
 	"github.com/ruslannnnnnnnn/test-file-storage/internal/service"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type GrpcFileController struct {
@@ -21,20 +20,27 @@ func NewGrpcFileController(fileService service.IFileService) *GrpcFileController
 }
 
 func (g *GrpcFileController) Upload(ctx context.Context, req *pb.UploadRequest) (*pb.UploadResponse, error) {
-	fileId, err := g.fileService.Upload(common.UploadRequest{FileContent: req.Data, FileName: req.Filename})
+	fileId, err := g.fileService.Upload(common.UploadRequest{FileContent: req.GetData(), FileName: req.GetFilename()})
 	if err != nil {
-		return nil, err
+		return nil, helper.ToGrpcError(err)
 	}
 
 	return &pb.UploadResponse{Id: fileId}, nil
 }
+
 func (g *GrpcFileController) Download(ctx context.Context, req *pb.DownloadRequest) (*pb.DownloadResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Download not implemented")
+	result, err := g.fileService.Download(common.DownloadRequest{FileId: req.GetId()})
+	if err != nil {
+		return nil, helper.ToGrpcError(err)
+	}
+
+	return &pb.DownloadResponse{Data: result.FileContent, Filename: result.FileName}, nil
 }
+
 func (g *GrpcFileController) ListFiles(ctx context.Context, req *pb.ListFilesRequest) (*pb.ListFilesResponse, error) {
 	listFilesResponse, err := g.fileService.ListFiles()
 	if err != nil {
-		return nil, err
+		return nil, helper.ToGrpcError(err)
 	}
 
 	var fileInfo []*pb.FileInfo

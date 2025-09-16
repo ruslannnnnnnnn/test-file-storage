@@ -10,6 +10,7 @@ type IFileRepository interface {
 	AutoMigrate() error
 	ListFiles() ([]model.File, error)
 	Create(name string) (id string, err error)
+	GetById(id string) (model.File, error)
 }
 
 type FileRepository struct {
@@ -56,4 +57,15 @@ func (f FileRepository) Create(name string) (id string, err error) {
 	}
 
 	return fileId, nil
+}
+
+func (f FileRepository) GetById(id string) (model.File, error) {
+	var file model.File
+	result := f.dbConnection.First(&file, "id = ?", id)
+
+	if result.Error != nil {
+		return model.File{}, result.Error
+	}
+
+	return file, nil
 }
