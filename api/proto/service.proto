@@ -5,8 +5,8 @@ package service.v1;
 option go_package = "service/v1;servicev1";
 
 service FileService {
-  rpc Upload (UploadRequest) returns (UploadResponse);
-  rpc Download (DownloadRequest) returns (DownloadResponse);
+  rpc Upload (stream UploadRequest) returns (stream UploadResponse);
+  rpc Download (DownloadRequest) returns (stream DownloadResponse);
   rpc ListFiles (ListFilesRequest) returns (ListFilesResponse);
 }
 
@@ -28,7 +28,10 @@ message DownloadResponse {
   bytes data = 2;
 }
 
-message ListFilesRequest {}
+message ListFilesRequest {
+  uint32 page = 1;
+  uint32 limit = 2;
+}
 
 message FileInfo {
   string id = 1;

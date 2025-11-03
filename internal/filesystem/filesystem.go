@@ -15,6 +15,12 @@ func Write(name string, content []byte) error {
 	return nil
 }
 
+//
+//func WriteStream(name string, content io.Reader) error {
+//	file, err := os.Create(fileDir + name)
+//	file.Write(content.Read())
+//}
+
 func Read(name string) ([]byte, error) {
 	fileContent, err := os.ReadFile(fileDir + name)
 	if err != nil {
