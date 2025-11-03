@@ -31,43 +31,52 @@ func NewFileService(fileRepository repository.IFileRepository) *FileService {
 	return &FileService{fileRepository: fileRepository}
 }
 
-func (f FileService) Upload(request common.UploadRequest) (fileId string, err error) {
-
-	fileId, err = f.fileRepository.Create(request.FileName)
+func (f *FileService) Upload(ctx context.Context, filename string, fileIdCh chan string, r io.Reader) error {
+	fileId, err := f.fileRepository.Create(filename)
 	if err != nil {
-		return "", fmt.Errorf("ошибка при запросе на создание записи о файле %w", err)
+		return fmt.Errorf("ошибка при запросе на создание записи о файле %w", err)
 	}
 
-	// у сохранённого файла uuid в названии чтобы можно было иметь несколько файлов с одинаковым названием
-	err = filesystem.Write(fileId, request.FileContent)
-	if err != nil {
-		return "", fmt.Errorf("ошибка при при попытке записи файла в файловой системе %w", err)
+	select {
+	case fileIdCh <- fileId:
+	case <-ctx.Done():
+		return ctx.Err()
 	}
 
-	return
+	err = filesystem.WriteStream(fileId, r)
+	if err != nil {
+		return fmt.Errorf("ошибка при записи файла на диск %w", err)
+	}
+
+	return nil
 }
 
-func (f FileService) Download(request common.DownloadRequest) (common.DownloadResponse, error) {
-
-	err := uuid.Validate(request.FileId)
+func (f *FileService) Download(ctx context.Context, id string) (string, io.Reader, error) {
+	err := uuid.Validate(id)
 	if err != nil {
-		return common.DownloadResponse{}, InvalidUUidError
+		return "", nil, InvalidUUidError
 	}
 
-	file, err := f.fileRepository.GetById(request.FileId)
+	file, err := f.fileRepository.GetById(id)
 	if err != nil {
-		return common.DownloadResponse{}, FileNotFoundError
+		return "", nil, FileNotFoundError
 	}
 
-	fileContent, err := filesystem.Read(request.FileId)
-	if err != nil {
-		return common.DownloadResponse{}, fmt.Errorf("ошибка при попытке чтения файла из файловой системы %w", err)
-	}
+	r, w := io.Pipe()
 
-	return common.DownloadResponse{FileName: file.Name, FileContent: fileContent}, nil
+	go func() {
+		defer w.Close()
+		err = filesystem.Read(file.Name, w)
+		if err != nil {
+			w.CloseWithError(err)
+		}
+	}()
+
+	return file.Name, r, nil
+
 }
 
-func (f FileService) ListFiles() (common.ListFilesResponse, error) {
+func (f *FileService) ListFiles(ctx context.Context) (common.ListFilesResponse, error) {
 	result, err := f.fileRepository.ListFiles()
 	if err != nil {
 		return common.ListFilesResponse{}, fmt.Errorf("ошибка при запросе списка файлов %w", err)

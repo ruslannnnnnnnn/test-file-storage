@@ -1,13 +1,20 @@
 package filesystem
 
 import (
+	"io"
 	"os"
 )
 
 const fileDir = "/app/files/"
 
-func Write(name string, content []byte) error {
-	err := os.WriteFile(fileDir+name, content, 0600)
+func WriteStream(name string, content io.Reader) error {
+	file, err := os.Create(fileDir + name)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, content)
 	if err != nil {
 		return err
 	}
@@ -15,17 +22,30 @@ func Write(name string, content []byte) error {
 	return nil
 }
 
-//
-//func WriteStream(name string, content io.Reader) error {
-//	file, err := os.Create(fileDir + name)
-//	file.Write(content.Read())
-//}
-
-func Read(name string) ([]byte, error) {
-	fileContent, err := os.ReadFile(fileDir + name)
+func Read(name string, w io.Writer) error {
+	file, err := os.Open(fileDir + name)
 	if err != nil {
-		return nil, err
+		return err
+	}
+	defer file.Close()
+
+	chunk := make([]byte, 1024)
+
+	for {
+		n, err := file.Read(chunk)
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return err
+		}
+
+		_, err = w.Write(chunk[:n])
+		if err != nil {
+			return err
+		}
 	}
 
-	return fileContent, nil
+	return nil
 }
